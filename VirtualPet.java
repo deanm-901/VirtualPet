@@ -8,6 +8,12 @@ class Pet {
    public int hunger;
    public int energy;
 
+   public Pet() {
+      this.happiness = 5;
+      this.hunger    = 5;
+      this.energy    = 5;
+   }
+
    public void feed() {
       this.happiness += 1;
       this.hunger    -= 3;
@@ -39,18 +45,33 @@ class Pet {
       System.out.println("-------------------------");
    }
 
-   public bool isOkay() {
-      return this.happiness < 15 || this.hunger < 10 || energy > 0;
+   public boolean isOkay() {
+      return ((this.happiness < 15) && (this.hunger < 10) && (this.energy > 0));
+   }
+
+   public String getEndingMessage() {
+      String s = "";
+
+      if (this.happiness >= 15)
+         s = this.name+" became so happy! Good Job!";
+      
+      if (this.hunger >= 10)
+         s = this.name+" has died of hunger.";
+      
+      if (this.energy <= 0)
+         s = this.name+" ran out of energy and died.";
+
+      return s;
    }
 }
 
 public class VirtualPet {
-   public static final enum Choices {
+   public enum Choices {
       FEED(1) {
          @Override
          public String[] applyChoice(Pet pet) {
             pet.feed();
-            return {
+            return new String[] {
                "Yum! They loved it!",
                "Oh god, they threw it up!",
                "They thoroughly enjoed it.",
@@ -62,7 +83,7 @@ public class VirtualPet {
          @Override
          public String[] applyChoice(Pet pet) {
             pet.play();
-            return {
+            return new String[] {
                "You went to a pet park and they made friends!",
                "You decided to go on a walk with your pet. They pooped everywhere.",
                "You gave them the toys you bought for them earlier! They ripped it all up.",
@@ -74,7 +95,7 @@ public class VirtualPet {
          @Override
          public String[] applyChoice(Pet pet) {
             pet.sleep();
-            return {
+            return new String[] {
                "They looked like they were dreaming of steak you ate earlier.",
                "Aah! they got woken up by a nightmare! But they seems happy.",
                "They look like they're dreaming of chasing spiders.",
@@ -86,7 +107,7 @@ public class VirtualPet {
          @Override
          public String[] applyChoice(Pet pet) {
             pet.bath();
-            return {
+            return new String[] {
                "They liked the bath",
                "Oh god, they pooped in the bath!",
                "Oh god, they peed in the bath!",
@@ -97,13 +118,28 @@ public class VirtualPet {
       QUIT(5) {
          @Override
          public String[] applyChoice(Pet pet) {
-            return {
+            return new String[] {
                "Goodbye!"
             };
          }
-      },
+      };
 
       public abstract String[] applyChoice(Pet pet);
+
+      final int value;
+      Choices(int value) {
+         this.value = value;
+      }
+      public int getValue() {
+         return value;
+      }
+      public static Choices fromValue(int value) {
+         for (Choices choice: Choices.values()) {
+            if (choice.getValue() == value) return choice;
+         }
+         System.out.println("Not a choice! You decide to feed them instead");
+         return Choices.FEED;
+      }
    }
 
    public static void main(String[] args) {
@@ -111,12 +147,8 @@ public class VirtualPet {
       Scanner input = new Scanner(System.in);
 
       Pet pet = new Pet();
-
-      int happiness = 5;
-      int hunger = 5;
-      int energy = 5;
       
-      Choices choice = (Choices)1;
+      Choices choice = Choices.FEED;
       
       System.out.println("Welcome to Virtual Pet Simulator!");
       System.out.print("Enter your pet name: ");
@@ -131,16 +163,16 @@ public class VirtualPet {
       // hunger < 10
       // energy > 0
       // choice != 5
-      while(pet.isOkay && choice != Choices.QUIT) {
+      while(pet.isOkay() && choice.getValue() != Choices.QUIT.getValue()) {
          // TODO 2:
          // Display happiness, hunger, and energy.
          pet.displayAttr();
          
          System.out.println("What would you like to do?");
-         for (choice : Choices.values())
-            System.out.println((int)choice+". "+choice.name());
+         for (Choices chc : Choices.values())
+            System.out.println(chc.getValue()+". "+chc.name());
          
-         choice = (Choices)input.nextInt();
+         choice = Choices.fromValue(input.nextInt());
          
          // TODO 3:
          // Create an if / else if / else statement
@@ -153,7 +185,7 @@ public class VirtualPet {
 
          String[] responces = choice.applyChoice(pet);
 
-         // math random
+         String responce = responces[(int)(Math.random()*responces.length)];
       }
 
       // TODO 4:
@@ -165,6 +197,8 @@ public class VirtualPet {
       // Did the player quit?
       //
       // Print the appropriate ending message.
+      System.out.println(pet.getEndingMessage());
+
       input.close();
    }
 }
